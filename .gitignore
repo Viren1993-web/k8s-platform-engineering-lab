@@ -1,0 +1,35 @@
+# ── Go ──
+app/vendor/
+*.exe
+*.test
+*.out
+
+# ── Docker ──
+docker-compose.override.yml
+
+# ── IDE ──
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Environment ──
+.env
+.env.local
+.env.*.local
+
+# ── Logs ──
+*.log
+
+# ── Terraform (future) ──
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/.terraform.lock.hcl
+
+# ── Temporary ──
+tmp/
