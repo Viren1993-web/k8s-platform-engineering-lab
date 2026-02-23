@@ -77,7 +77,7 @@ EXPOSE 9090
 
 # Health check (Docker-level, separate from K8s probes)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ["/platform-api", "-health-check"] || exit 1
+    CMD sh -c '/platform-api -health-check || exit 1'
 
 # Run the binary
 ENTRYPOINT ["/platform-api"]
