@@ -1,0 +1,146 @@
+# ============================================================================
+# Platform API — Docker Build & Security Scan
+# ============================================================================
+# Triggers on push and PR to main branch.
+# Builds the Docker image, runs tests, and performs security scans.
+# ============================================================================
+
+name: Docker Build & Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_NAME: platform-api
+
+jobs:
+  # ── Unit Tests ────────────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      - name: Run tests
+        working-directory: ./app
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: app/coverage.out
+
+  # ── Docker Build ──────────────────────────────────────────────────────────
+  build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set build metadata
+        id: meta
+        run: |
+          echo "version=1.0.0" >> $GITHUB_OUTPUT
+          echo "commit=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "build_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile \
+            --build-arg VERSION=${{ steps.meta.outputs.version }} \
+            --build-arg BUILD_TIME=${{ steps.meta.outputs.build_time }} \
+            --build-arg COMMIT_SHA=${{ steps.meta.outputs.commit }} \
+            -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            .
+
+      - name: Show image size
+        run: docker images ${{ env.IMAGE_NAME }}
+
+      - name: Save image
+        run: docker save ${{ env.IMAGE_NAME }}:latest > /tmp/image.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/image.tar
+          retention-days: 1
+
+  # ── Security Scans ───────────────────────────────────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar
+
+      - name: Hadolint — Dockerfile Lint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker/Dockerfile
+          ignore: DL3018
+
+      - name: Trivy — Vulnerability Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.IMAGE_NAME }}:latest"
+          format: "table"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+
+  # ── Smoke Test ───────────────────────────────────────────────────────────
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar
+
+      - name: Start container
+        run: |
+          docker run -d --name platform-api \
+            -p 9090:9090 \
+            -e ENVIRONMENT=ci \
+            ${{ env.IMAGE_NAME }}:latest
+          sleep 3
+
+      - name: Run smoke tests
+        run: bash scripts/smoke-test.sh http://localhost:9090
+
+      - name: Container logs
+        if: always()
+        run: docker logs platform-api
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f platform-api

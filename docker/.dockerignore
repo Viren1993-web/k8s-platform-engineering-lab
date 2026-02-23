@@ -1,0 +1,35 @@
+# ── Build artifacts ──
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# ── Go ──
+vendor/
+
+# ── Local environment ──
+.env
+.env.local
+*.log
+
+# ── IDE ──
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Docker ──
+docker/Dockerfile.dev
+*.md
+docs/
+.git
+.gitignore
+.github
+LICENSE
