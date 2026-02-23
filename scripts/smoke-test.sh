@@ -18,10 +18,10 @@ check() {
 
     if [[ "$actual_code" == "$expected_code" ]]; then
         echo "  ✓ ${name} (HTTP ${actual_code})"
-        ((PASS++))
+        ((PASS++)) || true
     else
         echo "  ✗ ${name} — expected ${expected_code}, got ${actual_code}"
-        ((FAIL++))
+        ((FAIL++)) || true
     fi
 }
 
