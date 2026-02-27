@@ -1,0 +1,52 @@
+# ============================================================================
+# NetworkPolicy — platform-api
+# ============================================================================
+# Implements zero-trust networking:
+#   - Only allows ingress from the Ingress controller and Prometheus
+#   - Only allows egress to DNS (kube-dns) and required services
+#   - All other traffic is denied by default
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: platform-api
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: api
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: platform-api
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    # Allow traffic from the Ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # Allow Prometheus to scrape /metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8080
+
+  egress:
+    # Allow DNS resolution (required for service discovery)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

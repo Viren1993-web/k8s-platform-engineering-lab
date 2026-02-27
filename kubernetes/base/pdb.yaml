@@ -1,0 +1,23 @@
+# ============================================================================
+# PodDisruptionBudget — platform-api
+# ============================================================================
+# Ensures a minimum number of pods remain available during voluntary
+# disruptions (node drains, cluster upgrades, spot instance evictions).
+#
+# With 3 replicas and minAvailable: 2, the cluster can only evict 1 pod
+# at a time during maintenance.
+# ============================================================================
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: platform-api
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: platform-api
+      app.kubernetes.io/component: api

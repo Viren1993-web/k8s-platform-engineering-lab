@@ -1,0 +1,28 @@
+# ============================================================================
+# LimitRange — platform-api namespace
+# ============================================================================
+# Sets default resource requests/limits for containers that don't specify
+# their own. Acts as a safety net.
+# ============================================================================
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: platform-api-limits
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 200m
+        memory: 128Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+      max:
+        cpu: "1"
+        memory: 512Mi
+      min:
+        cpu: 10m
+        memory: 16Mi
