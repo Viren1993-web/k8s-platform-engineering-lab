@@ -16,7 +16,8 @@ This is a **single, evolving platform engineering project** that showcases:
 - **Container optimization** — Multi-stage builds, distroless images, ~10MB production containers
 - **Security-first approach** — Non-root execution, CVE scanning, CIS benchmarks, no shell in production
 - **Production patterns** — Structured logging, graceful shutdown, health probes, config management
-- **Kubernetes-native design** — Ready for liveness/readiness probes, Prometheus metrics, resource limits
+- **Kubernetes-native design** — Deployments, Services, Ingress, HPA, PDB, NetworkPolicy, RBAC
+- **Helm & Kustomize** — Full Helm chart + Kustomize overlays for dev/staging/production
 - **Infrastructure as Code** — Reproducible builds, Docker Compose, Makefile automation
 
 ---
@@ -163,12 +164,18 @@ k8s-platform-engineering-lab/
 ├── scripts/                      # Automation scripts
 │   ├── build.sh                  # Build with metadata injection
 │   ├── security-scan.sh          # Trivy + Hadolint + Dockle
-│   └── smoke-test.sh             # Endpoint validation
+│   ├── smoke-test.sh             # Endpoint validation
+│   ├── k8s-deploy.sh             # K8s deployment (Kustomize + Helm)
+│   └── k8s-validate.sh           # Deployment validation (6-step)
 ├── docs/                         # Documentation
 │   ├── architecture.md           # System & container architecture
-│   └── week1-container-foundation.md
-├── kubernetes/                   # K8s manifests (Week 2)
-├── helm/                         # Helm charts (Week 2)
+│   ├── week1-container-foundation.md
+│   └── week2-kubernetes-core.md
+├── kubernetes/                   # K8s manifests + Kustomize overlays
+│   ├── base/                     # Base manifests (12 resources)
+│   └── overlays/                 # dev / staging / production
+├── helm/                         # Helm chart
+│   └── platform-api/             # Parameterized chart (v0.2.0)
 ├── monitoring/                   # Prometheus & Grafana (Week 3)
 ├── terraform/                    # EKS infrastructure (Week 4)
 ├── ci-cd/                        # CI/CD pipelines (Week 4)
@@ -243,7 +250,7 @@ make all
 | Week | Focus | Status |
 |------|-------|--------|
 | **1** | **Container Foundation** — Multi-stage builds, security scanning, structured logging | **Done** |
-| 2 | **Kubernetes Core** — Deployments, Services, Ingress, ConfigMaps, Secrets, Probes | Planned |
+| **2** | **Kubernetes Core** — Deployments, Services, Ingress, ConfigMaps, Secrets, Helm, Kustomize | **Done** |
 | 3 | **Observability** — Prometheus, Grafana dashboards, HPA, alerting, incident docs | Planned |
 | 4 | **Cloud Integration** — Terraform EKS, CI/CD pipeline, IAM, production config | Planned |
 
@@ -255,10 +262,11 @@ make all
 |----------|------------|
 | Language | Go 1.26 |
 | Container | Docker (multi-stage, distroless) |
+| Orchestration | Kubernetes, Docker Compose |
+| Package Mgmt | Helm 3, Kustomize |
 | Logging | Zap (structured JSON) |
 | Metrics | Prometheus client |
-| Orchestration | Docker Compose |
-| Security | Trivy, Hadolint, Dockle |
+| Security | Trivy, Hadolint, Dockle, NetworkPolicy, RBAC |
 | Automation | Make, Bash |
 | CI | GitHub Actions |
 

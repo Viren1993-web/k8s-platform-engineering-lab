@@ -1,0 +1,54 @@
+# ============================================================================
+# Kustomize Overlay — Production
+# ============================================================================
+# Full production configuration with all security and HA features enabled.
+# ============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: platform-api
+
+resources:
+  - ../../base
+  - ../../../kubernetes/base/ingress.yaml
+
+patches:
+  # 3 replicas in production
+  - target:
+      kind: Deployment
+      name: platform-api
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 3
+
+  # Production-grade resources
+  - target:
+      kind: Deployment
+      name: platform-api
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 100m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 128Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 256Mi
+
+  # Override ConfigMap for production environment
+  - target:
+      kind: ConfigMap
+      name: platform-api-config
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: platform-api-config
+      data:
+        ENVIRONMENT: "production"
+        LOG_LEVEL: "info"

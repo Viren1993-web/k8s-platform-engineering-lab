@@ -1,0 +1,88 @@
+# ============================================================================
+# Kustomize Overlay — Development
+# ============================================================================
+# Minimal resources, debug logging, single replica.
+# ============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: platform-api-dev
+
+namePrefix: dev-
+
+resources:
+  - ../../base
+
+patches:
+  # Scale down to 1 replica
+  - target:
+      kind: Deployment
+      name: platform-api
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Reduce resource requests
+  - target:
+      kind: Deployment
+      name: platform-api
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 10m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 32Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 100m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 64Mi
+
+  # Disable HPA in dev
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: platform-api
+    patch: |
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: platform-api
+
+  # Disable PDB in dev
+  - target:
+      kind: PodDisruptionBudget
+      name: platform-api
+    patch: |
+      $patch: delete
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: platform-api
+
+  # Disable NetworkPolicy in dev
+  - target:
+      kind: NetworkPolicy
+      name: platform-api
+    patch: |
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: platform-api
+
+  # Override ConfigMap for dev environment
+  - target:
+      kind: ConfigMap
+      name: platform-api-config
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: platform-api-config
+      data:
+        ENVIRONMENT: "development"
+        LOG_LEVEL: "debug"

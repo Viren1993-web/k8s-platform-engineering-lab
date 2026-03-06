@@ -1,0 +1,25 @@
+# ============================================================================
+# Service — platform-api (ClusterIP)
+# ============================================================================
+# Provides stable internal DNS name and load balancing across pods.
+#   - ClusterIP: internal-only (default, most secure)
+#   - The Ingress exposes it externally
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-api
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

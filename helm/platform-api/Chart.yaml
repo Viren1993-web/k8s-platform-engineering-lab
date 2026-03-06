@@ -1,0 +1,16 @@
+apiVersion: v2
+name: platform-api
+description: Production-ready Kubernetes Platform API Service
+type: application
+version: 0.2.0
+appVersion: "1.0.0"
+keywords:
+  - platform-engineering
+  - api
+  - microservice
+  - kubernetes
+maintainers:
+  - name: Viren Patel
+home: https://github.com/virenpatel/k8s-platform-engineering-lab
+sources:
+  - https://github.com/virenpatel/k8s-platform-engineering-lab

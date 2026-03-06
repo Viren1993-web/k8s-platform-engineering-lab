@@ -1,0 +1,23 @@
+# ============================================================================
+# ResourceQuota — platform-api namespace
+# ============================================================================
+# Limits the total resources that all pods in the namespace can consume.
+# Prevents a single namespace from monopolizing cluster resources.
+# ============================================================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: platform-api-quota
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 1Gi
+    limits.cpu: "4"
+    limits.memory: 2Gi
+    pods: "20"
+    services: "5"
+    configmaps: "10"
+    secrets: "10"

@@ -1,0 +1,28 @@
+suite: platform-api
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: should render deployment with correct replicas
+    set:
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should not set replicas when autoscaling is enabled
+    set:
+      autoscaling:
+        enabled: true
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: should use non-root security context
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 65532

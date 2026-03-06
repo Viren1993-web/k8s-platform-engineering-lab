@@ -1,0 +1,45 @@
+# ============================================================================
+# Ingress — platform-api
+# ============================================================================
+# Routes external HTTP traffic to the Service.
+# Supports:
+#   - TLS termination
+#   - Path-based routing
+#   - Rate limiting (via annotations)
+#
+# Works with: NGINX Ingress Controller, AWS ALB, Traefik, etc.
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-api
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: api
+  annotations:
+    # ── NGINX Ingress Controller ──────────────────────────────────────────
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "false"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "10"
+    # Rate limiting: 10 requests/sec per IP
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - platform-api.example.com
+      secretName: platform-api-tls
+  rules:
+    - host: platform-api.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: platform-api
+                port:
+                  name: http

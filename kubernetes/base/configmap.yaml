@@ -1,0 +1,24 @@
+# ============================================================================
+# ConfigMap — platform-api
+# ============================================================================
+# Non-sensitive configuration injected as environment variables.
+# Follows 12-factor app methodology — config lives outside the image.
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-api-config
+  namespace: platform-api
+  labels:
+    app.kubernetes.io/name: platform-api
+    app.kubernetes.io/component: config
+data:
+  SERVICE_NAME: "platform-api"
+  SERVICE_VERSION: "1.0.0"
+  ENVIRONMENT: "production"
+  PORT: "8080"
+  LOG_LEVEL: "info"
+  READ_TIMEOUT: "5s"
+  WRITE_TIMEOUT: "10s"
+  IDLE_TIMEOUT: "120s"
+  SHUTDOWN_TIMEOUT: "30s"
